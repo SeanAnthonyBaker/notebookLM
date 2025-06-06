@@ -1,0 +1,11 @@
+pip
+autopep8
+Flask==3.0.3
+docker
+fastapi
+uvicorn
+python-multipart
+selenium
+webdriver-manager
+gunicorn==22.0.0
+Werkzeug==3.0.6
