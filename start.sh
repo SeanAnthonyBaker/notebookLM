@@ -22,16 +22,16 @@ chmod -R 777 /tmp
 
 # --- Ensure Virtual Environment and Dependencies are Setup ---
 # Check if the virtual environment exists
-if [ ! -d "/app/.venv" ]; then
-    echo "Virtual environment not found at /app/.venv. Creating..."
-    python -m venv /app/.venv
+if [ ! -d "/opt/venv" ]; then
+    echo "Virtual environment not found at /opt/venv. Creating..."
+    python -m venv /opt/venv
     echo "Installing dependencies into the virtual environment..."
-    /app/.venv/bin/pip install --no-cache-dir -r /app/requirements.txt
+    /opt/venv/bin/pip install --no-cache-dir -r /app/requirements.txt
 fi
 
 echo "Cleanup complete. Starting FastAPI application..."
 # Activate the virtual environment within the app directory
-source /app/.venv/bin/activate
+source /opt/venv/bin/activate
 
 # Execute the FastAPI application
 exec uvicorn main:app --host 0.0.0.0 --port 8000
