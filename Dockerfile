@@ -10,15 +10,34 @@ WORKDIR /app
 # Ensure the seluser has write permissions to the /app directory
 RUN chown -R seluser:seluser /app
 
+# Add write permissions for the group and others to /app - Use with caution!
+RUN chmod go+w /app
+# Debugging: List files in /usr/local/bin and check permissions of start.sh
+RUN ls -l /usr/local/bin/
+
+
 # Add commands for debugging and checking Chrome/Chromedriver
 RUN google-chrome --version
 RUN test -x /opt/google/chrome/google-chrome && echo "Chrome binary exists and is executable" || (echo "Chrome binary not found or not executable" && exit 1)
 
+# Copy and install compatible ChromeDriver from local directory
+ENV CHROMEDRIVER_VERSION 137.0.7151.68
+COPY ./chromedriver /opt/selenium/
+RUN chmod +x /opt/selenium/chromedriver
+
+# Copy the persistent Chrome user profile
+COPY ./chrome-profile /home/seluser/chrome-profile
+# Ensure seluser has ownership and permissions for the profile directory
+RUN chown -R seluser:seluser /home/seluser/chrome-profile && chmod -R u+rwx /home/seluser/chrome-profile
+
+# Fix sudo permissions for seluser
+RUN chown root:root /usr/bin/sudo && \
+    chmod u+s /usr/bin/sudo
+
 # --- Ensure /tmp has correct permissions and exists for tempfile.mkdtemp ---
 # Perform these actions as root before switching to seluser
-RUN chmod -R 777 /tmp && \
-    mkdir -p /tmp/selenium_profiles /home/seluser/.config/google-chrome && \
-    chown -R seluser:seluser /home/seluser/.config
+# Note: We are no longer using a temporary profile, so /tmp permissions might be less critical here
+RUN chmod -R 777 /tmp && mkdir -p /home/seluser/.config/google-chrome && chown -R seluser:seluser /home/seluser/.config
 
 # Create a virtual environment and install dependencies into it as root
 RUN chown -R seluser:seluser /opt/venv

@@ -18,7 +18,7 @@ rm -rf /home/seluser/.config/google-chrome/Default # The 'Default' profile withi
 rm -rf /home/seluser/.config/google-chrome/SingletonLock # Common lock file
 
 # Ensure permissions are correct just in case (though Dockerfile already sets /tmp)
-chmod -R 777 /tmp
+sudo chmod -R 777 /tmp
 
 # --- Ensure Virtual Environment and Dependencies are Setup ---
 # Check if the virtual environment exists
