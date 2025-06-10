@@ -30,8 +30,9 @@ if [ ! -d "/opt/venv" ]; then
 fi
 
 echo "Cleanup complete. Starting FastAPI application..."
-# Activate the virtual environment within the app directory
+echo "PATH before activation: $PATH"
 source /opt/venv/bin/activate
-
+echo "PATH after activation: $PATH"
+    ls -l /opt/venv/bin/uvicorn
 # Execute the FastAPI application
 exec uvicorn main:app --host 0.0.0.0 --port 8000

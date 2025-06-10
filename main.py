@@ -52,6 +52,16 @@ async def setup_driver(notebook_id: str):
     if driver:
         raise HTTPException(status_code=400, detail="Driver already initialized. Call /driver/close first if you want to re-initialize.")
     
+    # Check if a temporary directory from a previous run exists and remove it
+    if current_user_data_dir and os.path.exists(current_user_data_dir):
+        module_logger.info(f"Found existing temporary user data directory: {current_user_data_dir}. Attempting to remove.")
+        try:
+            shutil.rmtree(current_user_data_dir)
+            module_logger.info("Existing temporary directory removed successfully.")
+        except Exception as cleanup_error:
+            module_logger.error(f"Error removing existing temporary user data directory {current_user_data_dir}: {cleanup_error}", exc_info=True)
+            # Continue execution even if cleanup fails, but log the error
+
     # Create a temporary user data directory and copy contents from the persistent one
     source_user_data_dir = "/home/seluser/chrome-profile"
     current_user_data_dir = tempfile.mkdtemp()

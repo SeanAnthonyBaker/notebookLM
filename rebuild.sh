@@ -27,7 +27,13 @@ echo "Attempting to remove container $CONTAINER_NAME..."
 docker rm "$CONTAINER_NAME" 2>/dev/null
 # Build the new image
 echo "Building Docker image $IMAGE_NAME..."
-docker build -t "$IMAGE_NAME" .
+# Aggressively clean up all unused Docker objects, including volumes and build cache
+echo "Performing aggressive Docker system prune..."
+docker system prune -a -f --volumes
+# Explicitly remove the image to force a fresh build
+echo "Removing existing image $IMAGE_NAME..."
+docker rmi -f "$IMAGE_NAME" 2>/dev/null
+docker build --no-cache -t "$IMAGE_NAME" .
 
 # Run a new container
 echo "Running new container $CONTAINER_NAME from image $IMAGE_NAME..."

@@ -4,6 +4,9 @@ FROM selenium/standalone-chrome:latest
 # Ensure operations requiring root privileges are done as root
 USER root
 
+# Explicitly create the /app directory
+RUN mkdir /app
+
 # Set the working directory in the container
 WORKDIR /app
 
@@ -38,29 +41,33 @@ RUN chown root:root /usr/bin/sudo && \
 # Perform these actions as root before switching to seluser
 # Note: We are no longer using a temporary profile, so /tmp permissions might be less critical here
 RUN chmod -R 777 /tmp && mkdir -p /home/seluser/.config/google-chrome && chown -R seluser:seluser /home/seluser/.config
-
-# Create a virtual environment and install dependencies into it as root
+# Create the virtual environment directory and set ownership
+RUN mkdir -p /opt/venv
 RUN chown -R seluser:seluser /opt/venv
+# Switch to root for permission modifications
+USER root
+# Create a virtual environment
 RUN python -m venv /opt/venv
 
+COPY requirements.txt /app/
+RUN /opt/venv/bin/pip install --no-cache-dir -r /app/requirements.txt
+
+
+# Install Python dependencies using the virtual environment
+# Change ownership of the installed packages to seluser
+RUN chown -R seluser:seluser /opt/venv/lib/python*/site-packages
 # --- CRITICAL ADDITION: Cleanup on container start ---
 # Create a startup script that cleans up and then runs your app
 COPY start.sh /usr/local/bin/start.sh
+
 # Make the startup script executable as root
-RUN chmod +x /usr/local/bin/start.sh && \
- chown root:root /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh && chown root:root /usr/local/bin/start.sh
 
-# Switch to seluser for subsequent commands and running the app
+# Switch back to seluser for running the application
 USER seluser
-
-# Copy the requirements file into the container
-COPY requirements.txt requirements.txt
-
 # Copy the main application file
+COPY requirements.txt .
 COPY main.py .
 
-# Install Python dependencies using the virtual environment
-RUN /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
-
-# Command to run the startup script, which then runs the FastAPI application
-CMD /usr/local/bin/start.sh
+# Command to run the startup script, which then runs the FastAPI application.
+CMD ["/usr/local/bin/start.sh"]
